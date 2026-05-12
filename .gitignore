@@ -1,0 +1,23 @@
+# ОС
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.stackdump
+
+# Редакторы и IDE
+.idea/
+.vscode/
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# Временные и резервные копии
+*.log
+*.tmp
+*.bak
+~$*
+
+# Локальные настройки (при необходимости раскомментируйте)
+# .env
+# .env.local

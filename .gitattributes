@@ -1,0 +1,7 @@
+# Нормализация окончаний строк для кроссплатформенной работы
+* text=auto
+
+*.html text eol=lf
+*.md text eol=lf
+*.css text eol=lf
+*.js text eol=lf

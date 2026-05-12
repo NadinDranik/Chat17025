@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Рабочий расчет неопределенности методики по ГОСТ 34100.3-2017</title>
+  <!-- Ранняя установка темы из localStorage, чтобы не мигал светлый фон при загрузке -->
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem("uncertainty-theme") === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      } catch (e) { /* локальное хранилище недоступно — остаётся светлая тема */ }
+    })();
+  </script>
+  <style>
+    /*
+      Цвета вынесены в CSS-переменные: светлая тема в :root,
+      тёмная — переопределение в [data-theme="dark"].
+    */
+    :root {
+      color-scheme: light;
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #5c677d;
+      --line: #d8dee9;
+      --primary: #1f5fbf;
+      --primary-dark: #17498f;
+      --danger: #b42318;
+      --warning: #a15c00;
+      --success: #18794e;
+      --soft-blue: #edf4ff;
+      --soft-yellow: #fff8e6;
+      --soft-red: #fff1f0;
+      --soft-green: #eefaf3;
+      --shadow: 0 10px 30px rgba(23, 32, 51, 0.08);
+      --header-grad-from: #183b73;
+      --header-grad-to: #1f5fbf;
+      --sidebar-btn-bg: #f8fafc;
+      --sidebar-active-border: #b9d4ff;
+      --intro-border: #c9ddff;
+      --intro-text: #12366d;
+      --warning-border: #f3d48b;
+      --warning-text: #6a4300;
+      --error-border: #ffc9c4;
+      --success-border: #b7e4c7;
+      --label-text: #26344f;
+      --input-border: #cbd3df;
+      --input-bg: #ffffff;
+      --focus-ring: rgba(31, 95, 191, 0.12);
+      --secondary: #4f5f76;
+      --secondary-hover: #39475c;
+      --danger-hover: #8c1d13;
+      --ghost-bg: #ffffff;
+      --ghost-border: #b9d4ff;
+      --th-bg: #eef1f6;
+      --th-text: #25314a;
+      --component-bg: #fbfcff;
+      --title-strong: #1f2a44;
+      --badge-bg: #edf4ff;
+      --badge-text: #184b91;
+      --mini-bg: #ffffff;
+      --mini-border: #b8c2d4;
+      --mini-text: #26344f;
+      --kpi-bg: #f8fafc;
+      --kpi-value: #1c2a44;
+      --protocol-bg: #ffffff;
+      --formula-bg: #f5f7fb;
+      --formula-border: #dfe5ef;
+      --theme-toggle-bg: #ffffff;
+      --theme-toggle-border: #d8dee9;
+      --theme-toggle-shadow: 0 10px 30px rgba(23, 32, 51, 0.12);
+      --theme-toggle-hover: #edf4ff;
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #111827;
+      --card: #1f2937;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --line: #374151;
+      --primary: #3b82f6;
+      --primary-dark: #93c5fd;
+      --danger: #f87171;
+      --warning: #fbbf24;
+      --success: #34d399;
+      --soft-blue: rgba(59, 130, 246, 0.18);
+      --soft-yellow: rgba(251, 191, 36, 0.14);
+      --soft-red: rgba(248, 113, 113, 0.14);
+      --soft-green: rgba(52, 211, 153, 0.14);
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      --header-grad-from: #0c1929;
+      --header-grad-to: #1e3a5f;
+      --sidebar-btn-bg: #273449;
+      --sidebar-active-border: #4f6fad;
+      --intro-border: #3d5a80;
+      --intro-text: #bfdbfe;
+      --warning-border: #92400e;
+      --warning-text: #fcd34d;
+      --error-border: #991b1b;
+      --success-border: #047857;
+      --label-text: #cbd5e1;
+      --input-border: #4b5563;
+      --input-bg: #111827;
+      --focus-ring: rgba(59, 130, 246, 0.35);
+      --secondary: #64748b;
+      --secondary-hover: #94a3b8;
+      --danger-hover: #fca5a5;
+      --ghost-bg: #1f2937;
+      --ghost-border: #3b82f6;
+      --th-bg: #273449;
+      --th-text: #e2e8f0;
+      --component-bg: #243047;
+      --title-strong: #f1f5f9;
+      --badge-bg: rgba(59, 130, 246, 0.22);
+      --badge-text: #93c5fd;
+      --mini-bg: #1a2332;
+      --mini-border: #4b5563;
+      --mini-text: #cbd5e1;
+      --kpi-bg: #273449;
+      --kpi-value: #f8fafc;
+      --protocol-bg: #1a2332;
+      --formula-bg: #18212f;
+      --formula-border: #374151;
+      --theme-toggle-bg: #1f2937;
+      --theme-toggle-border: #4b5563;
+      --theme-toggle-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      --theme-toggle-hover: #273449;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--header-grad-from), var(--header-grad-to));
+      color: white;
+      padding: 28px 22px;
+    }
+
+    header .wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.2;
+    }
+
+    header p {
+      margin: 0;
+      max-width: 980px;
+      color: rgba(255,255,255,0.9);
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 12px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .sidebar button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin: 6px 0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: var(--sidebar-btn-bg);
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .sidebar button:hover,
+    .sidebar button.active {
+      background: var(--soft-blue);
+      border-color: var(--sidebar-active-border);
+      color: var(--primary-dark);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+
+    .card h3 {
+      margin: 20px 0 8px;
+      font-size: 18px;
+    }
+
+    .intro {
+      background: var(--soft-blue);
+      border: 1px solid var(--intro-border);
+      border-radius: 12px;
+      padding: 14px;
+      color: var(--intro-text);
+      margin: 12px 0;
+    }
+
+    .warning-box {
+      background: var(--soft-yellow);
+      border: 1px solid var(--warning-border);
+      border-radius: 12px;
+      padding: 14px;
+      color: var(--warning-text);
+      margin: 12px 0;
+    }
+
+    .error-box {
+      background: var(--soft-red);
+      border: 1px solid var(--error-border);
+      border-radius: 12px;
+      padding: 14px;
+      color: var(--danger);
+      margin: 12px 0;
+    }
+
+    .success-box {
+      background: var(--soft-green);
+      border: 1px solid var(--success-border);
+      border-radius: 12px;
+      padding: 14px;
+      color: var(--success);
+      margin: 12px 0;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 700;
+      color: var(--label-text);
+    }
+
+    .hint {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 400;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      margin-top: 6px;
+      padding: 10px 11px;
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    textarea { min-height: 82px; resize: vertical; }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 18px;
+    }
+
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px 18px;
+    }
+
+    .full { grid-column: 1 / -1; }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    button.action {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      color: white;
+      background: var(--primary);
+      font-weight: 700;
+    }
+
+    button.action:hover { background: var(--primary-dark); }
+
+    button.secondary {
+      background: var(--secondary);
+    }
+
+    button.secondary:hover { background: var(--secondary-hover); }
+
+    button.danger {
+      background: var(--danger);
+    }
+
+    button.danger:hover { background: var(--danger-hover); }
+
+    button.ghost {
+      background: var(--ghost-bg);
+      color: var(--primary-dark);
+      border: 1px solid var(--ghost-border);
+    }
+
+    button.ghost:hover {
+      background: var(--soft-blue);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: var(--th-bg);
+      color: var(--th-text);
+      font-weight: 800;
+    }
+
+    td.num, th.num { text-align: right; }
+    td.center, th.center { text-align: center; }
+
+    .table-scroll {
+      overflow-x: auto;
+      border-radius: 12px;
+    }
+
+    .component-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+      background: var(--component-bg);
+    }
+
+    .component-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .component-title {
+      font-weight: 800;
+      color: var(--title-strong);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .mini-result {
+      background: var(--mini-bg);
+      border: 1px dashed var(--mini-border);
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 12px;
+      color: var(--mini-text);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .kpi {
+      background: var(--kpi-bg);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .kpi .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    .kpi .value {
+      margin-top: 6px;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--kpi-value);
+      word-break: break-word;
+    }
+
+    .protocol {
+      background: var(--protocol-bg);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 12px;
+    }
+
+    .protocol h2,
+    .protocol h3 {
+      margin-top: 0;
+    }
+
+    .formula {
+      background: var(--formula-bg);
+      border: 1px solid var(--formula-border);
+      border-radius: 10px;
+      padding: 10px;
+      font-family: Consolas, Monaco, monospace;
+      margin: 8px 0;
+      overflow-x: auto;
+    }
+
+    .small { font-size: 12.5px; color: var(--muted); }
+
+    .hidden { display: none !important; }
+
+    /*
+      Плавающая кнопка смены темы: правый нижний угол экрана.
+      Класс .no-print скрывает элемент при печати протокола (вместе с остальными кнопками).
+    */
+    .theme-toggle {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 9999;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 1px solid var(--theme-toggle-border);
+      background: var(--theme-toggle-bg);
+      color: var(--text);
+      box-shadow: var(--theme-toggle-shadow);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      line-height: 1;
+      transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background: var(--theme-toggle-hover);
+      transform: scale(1.06);
+    }
+
+    .theme-toggle:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring), var(--theme-toggle-shadow);
+    }
+
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      .sidebar { position: relative; top: 0; }
+      .form-grid, .form-grid-3, .kpi-grid { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      header, .sidebar, .no-print, button { display: none !important; }
+      main { padding: 0; max-width: none; }
+      .grid { display: block; }
+      .card { box-shadow: none; border: none; border-radius: 0; page-break-inside: avoid; }
+      input, select, textarea { border: none; padding: 0; }
+      .protocol { border: none; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Рабочее приложение для расчета неопределенности методики</h1>
+    <p>Форма для лаборатории: ввод исходных данных, выбор типовых составляющих, автоматический расчет бюджета неопределенности, формирование вывода и печатного протокола по подходу ГОСТ 34100.3-2017 / ISO/IEC Guide 98-3:2008.</p>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+    <aside class="sidebar no-print">
+      <button class="active" onclick="scrollToBlock('block-start', this)">1. Сведения о расчете</button>
+      <button onclick="scrollToBlock('block-model', this)">2. Модель измерения</button>
+      <button onclick="scrollToBlock('block-components', this)">3. Составляющие</button>
+      <button onclick="scrollToBlock('block-results', this)">4. Результаты</button>
+      <button onclick="scrollToBlock('block-protocol', this)">5. Протокол</button>
+      <button onclick="scrollToBlock('block-help', this)">6. Инструкция</button>
+      <hr>
+      <button onclick="loadTypicalChemicalExample()">Загрузить пример</button>
+      <button onclick="calculateAll()">Рассчитать</button>
+      <button onclick="printProtocol()">Печать / PDF</button>
+      <button onclick="resetApp()">Очистить всё</button>
+    </aside>
+
+    <section>
+      <div class="card" id="block-start">
+        <h2>1. Сведения о расчете</h2>
+        <div class="intro">
+          Заполните этот блок так, как он должен выглядеть в расчетном листе или отчете верификации методики. Эти сведения попадут в итоговый протокол.
+        </div>
+
+        <div class="form-grid">
+          <div>
+            <label>Лаборатория</label>
+            <span class="hint">Например: Испытательная лаборатория ООО «...»</span>
+            <input id="labName" value="Испытательная лаборатория" />
+          </div>
+
+          <div>
+            <label>Номер расчета / отчета</label>
+            <span class="hint">Внутренний номер записи, если применяется</span>
+            <input id="reportNumber" value="ОН-001-2026" />
+          </div>
+
+          <div>
+            <label>Наименование методики</label>
+            <span class="hint">Полное обозначение НД или МВИ</span>
+            <input id="methodName" value="Методика выполнения измерений" />
+          </div>
+
+          <div>
+            <label>Объект испытаний</label>
+            <span class="hint">Например: вода питьевая, почва, воздух рабочей зоны, нефтепродукт</span>
+            <input id="objectName" value="Объект испытаний" />
+          </div>
+
+          <div>
+            <label>Измеряемая величина / показатель</label>
+            <span class="hint">Например: массовая концентрация хлорид-ионов</span>
+            <input id="measurand" value="Массовая концентрация определяемого компонента" />
+          </div>
+
+          <div>
+            <label>Единица измерения</label>
+            <span class="hint">Например: мг/дм³, мг/кг, Бк/кг, %</span>
+            <input id="unit" value="мг/дм³" />
+          </div>
+
+          <div>
+            <label>Результат измерения y</label>
+            <span class="hint">Итоговый результат, для которого рассчитывается U</span>
+            <input id="resultValue" type="number" step="any" value="10" oninput="calculateAll(false)" />
+          </div>
+
+          <div>
+            <label>Коэффициент охвата k</label>
+            <span class="hint">Обычно k = 2 для приближенного уровня охвата около 95 %, если лабораторией не принято иное</span>
+            <input id="coverageFactor" type="number" step="any" value="2" oninput="calculateAll(false)" />
+          </div>
+
+          <div>
+            <label>Правило округления</label>
+            <span class="hint">Выберите удобное представление результата</span>
+            <select id="roundMode" onchange="calculateAll(false)">
+              <option value="auto">Автоматически</option>
+              <option value="2sig">U до 2 значащих цифр</option>
+              <option value="3sig">U до 3 значащих цифр</option>
+              <option value="fixed2">2 знака после запятой</option>
+              <option value="fixed3">3 знака после запятой</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Дата расчета</label>
+            <span class="hint">Для протокола расчета</span>
+            <input id="calcDate" type="date" />
+          </div>
+
+          <div class="full">
+            <label>Назначение расчета</label>
+            <span class="hint">Например: верификация методики, пересмотр бюджета, расчет для протокола испытаний, оценка влияния замены оборудования</span>
+            <textarea id="purpose">Оценивание неопределенности измерений для подтверждения пригодности методики и представления результата измерения.</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="block-model">
+        <h2>2. Модель измерения</h2>
+        <div class="intro">
+          Здесь лаборатория фиксирует, откуда берется результат. Это важно: неопределенность считается не «вообще», а для конкретной модели измерения и конкретного результата.
+        </div>
+
+        <label>Модель / расчетная формула результата</label>
+        <span class="hint">Можно записать словами или формулой. Например: C = (A - b) / a × F; или результат определяется по градуировочной характеристике с учетом разбавления.</span>
+        <textarea id="modelFormula">Результат измерения определяется по методике с учетом повторяемости измерений, характеристик применяемых средств измерений, градуировочной характеристики, стандартных образцов, пробоподготовки и прочих влияющих факторов.</textarea>
+
+        <label>Принятый подход к оцениванию</label>
+        <select id="approach" onchange="calculateAll(false)">
+          <option value="budget">Бюджет неопределенности по входным величинам</option>
+          <option value="validation">По данным верификации / внутрилабораторной прецизионности</option>
+          <option value="combined">Комбинированный подход: бюджет + данные верификации</option>
+        </select>
+
+        <label>Критерий значимости составляющих</label>
+        <span class="hint">Составляющие с вкладом ниже критерия можно считать малозначимыми, если это установлено процедурой лаборатории</span>
+        <input id="significanceLimit" type="number" step="any" value="5" oninput="calculateAll(false)" />
+        <span class="hint">Указывается в процентах вклада в суммарную дисперсию. Например: 5 %.</span>
+      </div>
+
+      <div class="card" id="block-components">
+        <h2>3. Составляющие неопределенности</h2>
+        <div class="intro">
+          Добавьте только те составляющие, которые реально есть в вашей методике и влияют на результат. Для типовых случаев используйте готовые кнопки. Каждая карточка объясняет, что именно нужно подставить.
+        </div>
+
+        <div class="btn-row no-print">
+          <button class="action" onclick="addComponent('repeatability')">Повторяемость</button>
+          <button class="action" onclick="addComponent('intermediatePrecision')">Внутрилабораторная прецизионность</button>
+          <button class="action" onclick="addComponent('instrumentError')">Погрешность СИ</button>
+          <button class="action" onclick="addComponent('calibrationCertificate')">Свидетельство калибровки</button>
+          <button class="action" onclick="addComponent('resolution')">Цена деления / разрешение</button>
+          <button class="action" onclick="addComponent('crm')">ГСО / СО</button>
+          <button class="action" onclick="addComponent('calibrationCurve')">Градуировочная характеристика</button>
+          <button class="action" onclick="addComponent('samplePrep')">Пробоподготовка</button>
+          <button class="action" onclick="addComponent('recovery')">Извлечение / recovery</button>
+          <button class="action" onclick="addComponent('custom')">Своя составляющая</button>
+        </div>
+
+        <div class="warning-box">
+          Важно: коэффициент чувствительности c показывает, как изменение входной величины влияет на результат. Если составляющая уже выражена в единицах результата, обычно c = 1. Если составляющая относительная, удобнее включать ее как относительную и пересчитывать в абсолютную через результат.
+        </div>
+
+        <div id="componentsList"></div>
+      </div>
+
+      <div class="card" id="block-results">
+        <h2>4. Результаты расчета</h2>
+        <div id="validationMessages"></div>
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="label">uс(y)</div>
+            <div class="value" id="kpiUc">0</div>
+          </div>
+          <div class="kpi">
+            <div class="label">U = k · uс(y)</div>
+            <div class="value" id="kpiU">0</div>
+          </div>
+          <div class="kpi">
+            <div class="label">U относительная</div>
+            <div class="value" id="kpiRelU">0 %</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Главный вклад</div>
+            <div class="value" id="kpiDominant">—</div>
+          </div>
+        </div>
+
+        <h3>Бюджет неопределенности</h3>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th class="center">№</th>
+                <th>Составляющая</th>
+                <th>Источник данных</th>
+                <th class="center">Тип</th>
+                <th class="center">Распределение</th>
+                <th class="num">Стандартная u(x)</th>
+                <th class="num">c</th>
+                <th class="num">Вклад c·u(x)</th>
+                <th class="num">Дисперсия</th>
+                <th class="num">Вклад, %</th>
+                <th>Оценка значимости</th>
+              </tr>
+            </thead>
+            <tbody id="budgetTableBody"></tbody>
+          </table>
+        </div>
+
+        <div id="resultStatement" class="success-box"></div>
+      </div>
+
+      <div class="card" id="block-protocol">
+        <h2>5. Печатный протокол расчета</h2>
+        <div class="btn-row no-print">
+          <button class="action" onclick="calculateAll(true)">Обновить протокол</button>
+          <button class="action secondary" onclick="printProtocol()">Печать / сохранить в PDF</button>
+          <button class="action ghost" onclick="copyProtocolText()">Скопировать текст протокола</button>
+        </div>
+        <div id="protocol" class="protocol"></div>
+      </div>
+
+      <div class="card" id="block-help">
+        <h2>6. Инструкция для лаборатории</h2>
+
+        <h3>Что сюда подставлять</h3>
+        <p>В приложение подставляются не абстрактные данные, а конкретные источники неопределенности для вашей методики: повторяемость, прецизионность, погрешность или неопределенность СИ, данные поверки или калибровки, ГСО, градуировка, пробоподготовка, разбавление, извлечение, взвешивание, объемы, температурные влияния и другие факторы.</p>
+
+        <h3>Как выбирать тип оценки</h3>
+        <p><b>Тип A</b> выбирается, если составляющая получена статистически: серия параллельных определений, повторяемость, внутрилабораторная прецизионность, стандартное отклонение по экспериментальным данным.</p>
+        <p><b>Тип B</b> выбирается, если составляющая взята из внешних или нестатистических источников: паспорт, описание типа СИ, свидетельство поверки, свидетельство калибровки, сертификат ГСО, НД, справочник, допустимое отклонение, цена деления.</p>
+
+        <h3>Как выбирать распределение</h3>
+        <p><b>Нормальное</b> — если дана расширенная неопределенность U и коэффициент охвата k, либо статистическая оценка стандартного отклонения.</p>
+        <p><b>Прямоугольное</b> — если известна граница ±a, а внутри интервала значения считаются равновероятными. Часто применяется для пределов допускаемой погрешности, допуска, округления, разрешения шкалы.</p>
+        <p><b>Треугольное</b> — если значения около центра более вероятны, чем на краях интервала.</p>
+        <p><b>Задана стандартная неопределенность</b> — если u(x) уже рассчитана или напрямую приведена в источнике.</p>
+
+        <h3>Что писать в источнике данных</h3>
+        <p>Указывайте документ, откуда взято значение: протокол верификации, журнал ВЛК, свидетельство поверки, запись из ФГИС «Аршин», сертификат ГСО, паспорт СИ, описание типа СИ, НД на методику, расчет градуировочной характеристики.</p>
+
+        <h3>Что важно для экспертной проверки</h3>
+        <p>Сам расчет не заменяет процедуру лаборатории. В процедуре должны быть установлены правила идентификации составляющих, выбора распределений, расчета стандартных неопределенностей, учета коэффициентов чувствительности, округления, пересмотра бюджета и применения результата при оформлении протоколов испытаний.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!--
+  Кнопка переключения темы: визуально — правый нижний угол (position: fixed в .theme-toggle).
+  Размещена перед основным скриптом, чтобы при инициализации элемент уже был в DOM.
+  На печати скрывается (класс no-print и общее правило для button).
+-->
+<button
+  type="button"
+  class="theme-toggle no-print"
+  id="themeToggle"
+  aria-label="Переключить светлую и тёмную тему"
+  title="Тёмная / светлая тема"
+>
+  <span class="theme-toggle-icon" aria-hidden="true"></span>
+</button>
+
+<script>
+  const state = {
+    components: [],
+    lastResult: null
+  };
+
+  const templates = {
+    repeatability: {
+      title: "Повторяемость результатов измерений",
+      source: "Серия параллельных определений / данные верификации / ВЛК",
+      type: "A",
+      distribution: "normal_s_n",
+      inputMode: "absolute",
+      valueLabel: "Стандартное отклонение повторяемости sᵣ",
+      valueHint: "Введите стандартное отклонение, полученное по серии результатов, в единицах результата. Например: 0,15 мг/дм³.",
+      value: 0.15,
+      n: 5,
+      divisor: 1,
+      kSource: 2,
+      sensitivity: 1,
+      note: "Если используется среднее из n параллельных результатов, стандартная неопределенность рассчитывается как s / √n. Если в протокол выдается единичный результат, n обычно принимают равным 1."
+    },
+    intermediatePrecision: {
+      title: "Внутрилабораторная прецизионность",
+      source: "Данные ВЛК / верификации за разные дни, операторы, оборудование",
+      type: "A",
+      distribution: "normal_s_n",
+      inputMode: "absolute",
+      valueLabel: "Стандартное отклонение внутрилабораторной прецизионности sᴿw",
+      valueHint: "Введите стандартное отклонение, полученное в условиях внутрилабораторной прецизионности, в единицах результата.",
+      value: 0.2,
+      n: 1,
+      divisor: 1,
+      kSource: 2,
+      sensitivity: 1,
+      note: "Применяется, если лаборатория оценивает неопределенность по накопленным данным контроля стабильности или верификации."
+    },
+    instrumentError: {
+      title: "Погрешность средства измерений",
+      source: "Описание типа СИ / паспорт / свидетельство поверки / ФГИС «Аршин»",
+      type: "B",
+      distribution: "rectangular_halfwidth",
+      inputMode: "absolute",
+      valueLabel: "Граница погрешности ±a",
+      valueHint: "Введите предел допускаемой погрешности или максимальное отклонение в единицах результата либо входной величины. Для ±0,10 введите 0,10.",
+      value: 0.1,
+      n: 1,
+      divisor: Math.sqrt(3),
+      kSource: 2,
+      sensitivity: 1,
+      note: "Если дана граница допускаемой погрешности ±a и нет иных данных о распределении, часто принимается прямоугольное распределение: u = a / √3."
+    },
+    calibrationCertificate: {
+      title: "Неопределенность по свидетельству калибровки",
+      source: "Свидетельство калибровки аккредитованной калибровочной лаборатории",
+      type: "B",
+      distribution: "expanded_U_k",
+      inputMode: "absolute",
+      valueLabel: "Расширенная неопределенность U из свидетельства",
+      valueHint: "Введите U, указанную в свидетельстве калибровки. Коэффициент охвата из свидетельства укажите ниже.",
+      value: 0.08,
+      n: 1,
+      divisor: 1,
+      kSource: 2,
+      sensitivity: 1,
+      note: "Если в свидетельстве указано U при k = 2, стандартная неопределенность u = U / 2."
+    },
+    resolution: {
+      title: "Разрешение / цена деления / округление",
+      source: "Паспорт СИ / шкала прибора / формат выдачи результата",
+      type: "B",
+      distribution: "resolution",
+      inputMode: "absolute",
+      valueLabel: "Цена деления d или шаг округления",
+      valueHint: "Введите цену деления или шаг цифровой индикации. Программа примет полуширину a = d / 2 и рассчитает u = a / √3.",
+      value: 0.01,
+      n: 1,
+      divisor: Math.sqrt(12),
+      kSource: 2,
+      sensitivity: 1,
+      note: "Для цифрового разрешения обычно используется u = d / √12, где d — шаг индикации."
+    },
+    crm: {
+      title: "ГСО / стандартный образец",
+      source: "Паспорт / сертификат ГСО или СО",
+      type: "B",
+      distribution: "expanded_U_k",
+      inputMode: "relativePercent",
+      valueLabel: "Расширенная неопределенность аттестованного значения U, %",
+      valueHint: "Если в сертификате ГСО указана относительная расширенная неопределенность, введите ее в процентах. Например: 2 для 2 %.",
+      value: 2,
+      n: 1,
+      divisor: 1,
+      kSource: 2,
+      sensitivity: 1,
+      note: "Для ГСО важно указать источник аттестованного значения и его неопределенности. Если неопределенность дана абсолютной величиной, переключите режим ввода на абсолютный."
+    },
+    calibrationCurve: {
+      title: "Градуировочная характеристика",
+      source: "Расчет градуировочной характеристики / протокол построения ГХ",
+      type: "B",
+      distribution: "standard_u",
+      inputMode: "absolute",
+      valueLabel: "Стандартная неопределенность по ГХ u(cal)",
+      valueHint: "Введите уже рассчитанную стандартную неопределенность по градуировочной характеристике в единицах результата.",
+      value: 0.08,
+      n: 1,
+      divisor: 1,
+      kSource: 2,
+      sensitivity: 1,
+      note: "Если неопределенность ГХ рассчитана отдельно, ее можно внести как уже стандартную неопределенность."
+    },
+    samplePrep: {
+      title: "Пробоподготовка / разбавление / объемы / навеска",
+      source: "Методика, журналы приготовления растворов, данные СИ, мерная посуда, весы",
+      type: "B",
+      distribution: "rectangular_halfwidth",
+      inputMode: "relativePercent",
+      valueLabel: "Относительная граница влияния ±a, %",
+      valueHint: "Введите относительное влияние пробоподготовки в процентах. Например: 1,5 для ±1,5 %.",
+      value: 1.5,
+      n: 1,
+      divisor: Math.sqrt(3),
+      kSource: 2,
+      sensitivity: 1,
+      note: "Используйте, если влияние объемов, навески, разбавления или пробоподготовки удобнее оценить относительной величиной."
+    },
+    recovery: {
+      title: "Извлечение / recovery / смещение",
+      source: "Эксперимент по добавкам / верификация / контроль извлечения",
+      type: "B",
+      distribution: "rectangular_halfwidth",
+      inputMode: "relativePercent",
+      valueLabel: "Относительная граница влияния ±a, %",
+      valueHint: "Введите оцененную границу влияния неполного извлечения или смещения в процентах.",
+      value: 3,
+      n: 1,
+      divisor: Math.sqrt(3),
+      kSource: 2,
+      sensitivity: 1,
+      note: "Составляющая применяется, если методика предусматривает стадию извлечения или если смещение существенно и учитывается в бюджете."
+    },
+    custom: {
+      title: "Своя составляющая",
+      source: "Укажите источник данных",
+      type: "B",
+      distribution: "rectangular_halfwidth",
+      inputMode: "absolute",
+      valueLabel: "Значение для расчета",
+      valueHint: "Введите значение в зависимости от выбранного способа расчета.",
+      value: 0,
+      n: 1,
+      divisor: Math.sqrt(3),
+      kSource: 2,
+      sensitivity: 1,
+      note: "Используйте для любой иной составляющей: температура, влажность, холостой опыт, матричный эффект, транспортирование, нестабильность пробы и др."
+    }
+  };
+
+  function init() {
+    const today = new Date();
+    document.getElementById("calcDate").value = today.toISOString().slice(0, 10);
+    loadTypicalChemicalExample();
+  }
+
+  function scrollToBlock(id, button) {
+    document.getElementById(id).scrollIntoView({ behavior: "smooth", block: "start" });
+    document.querySelectorAll(".sidebar button").forEach(b => b.classList.remove("active"));
+    if (button) button.classList.add("active");
+  }
+
+  function uid() {
+    return "c" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  }
+
+  function addComponent(templateName) {
+    const template = structuredClone(templates[templateName] || templates.custom);
+    template.id = uid();
+    state.components.push(template);
+    renderComponents();
+    calculateAll(false);
+  }
+
+  function removeComponent(id) {
+    state.components = state.components.filter(c => c.id !== id);
+    renderComponents();
+    calculateAll(false);
+  }
+
+  function duplicateComponent(id) {
+    const current = state.components.find(c => c.id === id);
+    if (!current) return;
+    const copy = structuredClone(current);
+    copy.id = uid();
+    copy.title = copy.title + " — копия";
+    state.components.push(copy);
+    renderComponents();
+    calculateAll(false);
+  }
+
+  function updateComponent(id, field, value) {
+    const c = state.components.find(item => item.id === id);
+    if (!c) return;
+
+    if (["value", "n", "kSource", "sensitivity"].includes(field)) {
+      c[field] = Number(value);
+    } else {
+      c[field] = value;
+    }
+
+    calculateAll(false);
+  }
+
+  function renderComponents() {
+    const list = document.getElementById("componentsList");
+    list.innerHTML = "";
+
+    if (state.components.length === 0) {
+      list.innerHTML = `<div class="warning-box">Составляющие пока не добавлены. Добавьте хотя бы одну составляющую бюджета неопределенности.</div>`;
+      return;
+    }
+
+    state.components.forEach((c, index) => {
+      const card = document.createElement("div");
+      card.className = "component-card";
+      card.innerHTML = `
+        <div class="component-head">
+          <div>
+            <div class="component-title">${index + 1}. ${escapeHtml(c.title)}</div>
+            <span class="badge">${escapeHtml(c.type)} · ${distributionHuman(c.distribution)}</span>
+          </div>
+          <div class="btn-row no-print" style="margin:0">
+            <button class="action ghost" onclick="duplicateComponent('${c.id}')">Копия</button>
+            <button class="action danger" onclick="removeComponent('${c.id}')">Удалить</button>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div>
+            <label>Название составляющей</label>
+            <span class="hint">Пишите так, чтобы эксперт понял источник влияния</span>
+            <input value="${escapeAttr(c.title)}" oninput="updateComponent('${c.id}', 'title', this.value)" />
+          </div>
+
+          <div>
+            <label>Источник данных</label>
+            <span class="hint">Документ или запись, откуда взято значение</span>
+            <input value="${escapeAttr(c.source)}" oninput="updateComponent('${c.id}', 'source', this.value)" />
+          </div>
+
+          <div>
+            <label>Тип оценки</label>
+            <span class="hint">Тип A — статистика; Тип B — паспорт, НД, поверка, калибровка, ГСО</span>
+            <select onchange="updateComponent('${c.id}', 'type', this.value)">
+              <option value="A" ${c.type === "A" ? "selected" : ""}>Тип A</option>
+              <option value="B" ${c.type === "B" ? "selected" : ""}>Тип B</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Способ расчета u(x)</label>
+            <span class="hint">Выберите, что именно у вас есть в исходных данных</span>
+            <select onchange="updateComponent('${c.id}', 'distribution', this.value)">
+              <option value="normal_s_n" ${c.distribution === "normal_s_n" ? "selected" : ""}>Есть стандартное отклонение s: u = s / √n</option>
+              <option value="rectangular_halfwidth" ${c.distribution === "rectangular_halfwidth" ? "selected" : ""}>Есть граница ±a: u = a / √3</option>
+              <option value="triangular_halfwidth" ${c.distribution === "triangular_halfwidth" ? "selected" : ""}>Есть граница ±a: u = a / √6</option>
+              <option value="expanded_U_k" ${c.distribution === "expanded_U_k" ? "selected" : ""}>Есть расширенная U и k: u = U / k</option>
+              <option value="resolution" ${c.distribution === "resolution" ? "selected" : ""}>Есть цена деления d: u = d / √12</option>
+              <option value="standard_u" ${c.distribution === "standard_u" ? "selected" : ""}>u(x) уже рассчитана</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Режим ввода значения</label>
+            <span class="hint">Абсолютно — в единицах результата; относительно — в процентах от результата</span>
+            <select onchange="updateComponent('${c.id}', 'inputMode', this.value)">
+              <option value="absolute" ${c.inputMode === "absolute" ? "selected" : ""}>Абсолютное значение</option>
+              <option value="relativePercent" ${c.inputMode === "relativePercent" ? "selected" : ""}>Относительное значение, %</option>
+            </select>
+          </div>
+
+          <div>
+            <label>${escapeHtml(c.valueLabel || "Значение")}</label>
+            <span class="hint">${escapeHtml(c.valueHint || "Введите исходное значение")}</span>
+            <input type="number" step="any" value="${Number.isFinite(c.value) ? c.value : 0}" oninput="updateComponent('${c.id}', 'value', this.value)" />
+          </div>
+
+          <div>
+            <label>n</label>
+            <span class="hint">Число повторов. Используется только для u = s / √n. В остальных случаях оставьте 1.</span>
+            <input type="number" step="1" min="1" value="${Number.isFinite(c.n) ? c.n : 1}" oninput="updateComponent('${c.id}', 'n', this.value)" />
+          </div>
+
+          <div>
+            <label>k источника</label>
+            <span class="hint">Используется только если выбрано «Есть расширенная U и k»</span>
+            <input type="number" step="any" value="${Number.isFinite(c.kSource) ? c.kSource : 2}" oninput="updateComponent('${c.id}', 'kSource', this.value)" />
+          </div>
+
+          <div>
+            <label>Коэффициент чувствительности c</label>
+            <span class="hint">Если составляющая уже выражена в единицах результата, обычно c = 1</span>
+            <input type="number" step="any" value="${Number.isFinite(c.sensitivity) ? c.sensitivity : 1}" oninput="updateComponent('${c.id}', 'sensitivity', this.value)" />
+          </div>
+
+          <div class="full">
+            <label>Пояснение / обоснование</label>
+            <span class="hint">Здесь лучше записать, почему выбрано именно это распределение и этот источник данных</span>
+            <textarea oninput="updateComponent('${c.id}', 'note', this.value)">${escapeHtml(c.note || "")}</textarea>
+          </div>
+        </div>
+
+        <div class="mini-result" id="mini-${c.id}">Расчет будет показан после обновления.</div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  function calculateComponent(c, resultValue) {
+    let raw = Math.abs(Number(c.value));
+    let n = Math.max(1, Number(c.n) || 1);
+    let kSource = Math.abs(Number(c.kSource) || 2);
+    let sensitivity = Number(c.sensitivity);
+    if (!Number.isFinite(sensitivity)) sensitivity = 1;
+
+    let valueForCalc = raw;
+    if (c.inputMode === "relativePercent") {
+      valueForCalc = Math.abs(resultValue) * raw / 100;
+    }
+
+    let standardU = 0;
+    let formula = "";
+
+    switch (c.distribution) {
+      case "normal_s_n":
+        standardU = valueForCalc / Math.sqrt(n);
+        formula = "u = s / √n";
+        break;
+      case "rectangular_halfwidth":
+        standardU = valueForCalc / Math.sqrt(3);
+        formula = "u = a / √3";
+        break;
+      case "triangular_halfwidth":
+        standardU = valueForCalc / Math.sqrt(6);
+        formula = "u = a / √6";
+        break;
+      case "expanded_U_k":
+        standardU = kSource > 0 ? valueForCalc / kSource : 0;
+        formula = "u = U / k";
+        break;
+      case "resolution":
+        standardU = valueForCalc / Math.sqrt(12);
+        formula = "u = d / √12";
+        break;
+      case "standard_u":
+        standardU = valueForCalc;
+        formula = "u задана напрямую";
+        break;
+      default:
+        standardU = 0;
+        formula = "не задано";
+    }
+
+    const contribution = sensitivity * standardU;
+    const variance = contribution * contribution;
+
+    return {
+      id: c.id,
+      title: c.title,
+      source: c.source,
+      type: c.type,
+      distribution: c.distribution,
+      inputMode: c.inputMode,
+      raw,
+      valueForCalc,
+      n,
+      kSource,
+      sensitivity,
+      standardU,
+      contribution,
+      variance,
+      formula,
+      note: c.note
+    };
+  }
+
+  function calculateAll(forceProtocol) {
+    const resultValue = Number(document.getElementById("resultValue").value);
+    const k = Number(document.getElementById("coverageFactor").value);
+    const significanceLimit = Number(document.getElementById("significanceLimit").value) || 0;
+    const unit = document.getElementById("unit").value || "ед.";
+
+    const messages = [];
+
+    if (!Number.isFinite(resultValue)) messages.push("Не указан числовой результат измерения y.");
+    if (!Number.isFinite(k) || k <= 0) messages.push("Коэффициент охвата k должен быть больше 0.");
+    if (state.components.length === 0) messages.push("Не добавлены составляющие неопределенности.");
+
+    const rows = state.components.map(c => calculateComponent(c, resultValue));
+    const sumVariance = rows.reduce((acc, r) => acc + r.variance, 0);
+    const uc = Math.sqrt(sumVariance);
+    const U = uc * (Number.isFinite(k) ? k : 0);
+    const relU = resultValue !== 0 ? Math.abs(U / resultValue) * 100 : 0;
+
+    rows.forEach(r => {
+      r.percent = sumVariance > 0 ? r.variance / sumVariance * 100 : 0;
+      r.significance = r.percent >= significanceLimit ? "значимая" : "малозначимая";
+    });
+
+    const dominant = rows.length ? [...rows].sort((a, b) => b.percent - a.percent)[0] : null;
+
+    state.lastResult = { rows, sumVariance, uc, U, relU, dominant };
+
+    renderMiniResults(rows, unit);
+    renderBudget(rows, unit);
+    renderKpi(uc, U, relU, dominant, unit);
+    renderValidation(messages, rows);
+    renderStatement(resultValue, U, relU, k, unit);
+    renderProtocol();
+  }
+
+  function renderMiniResults(rows, unit) {
+    rows.forEach(r => {
+      const el = document.getElementById("mini-" + r.id);
+      if (!el) return;
+      el.innerHTML = `
+        <b>Расчет:</b> ${escapeHtml(r.formula)}.<br>
+        Значение для расчета: ${fmt(r.valueForCalc)} ${escapeHtml(unit)}; 
+        стандартная u(x): ${fmt(r.standardU)} ${escapeHtml(unit)}; 
+        вклад c·u(x): ${fmt(r.contribution)} ${escapeHtml(unit)}.
+      `;
+    });
+  }
+
+  function renderBudget(rows, unit) {
+    const tbody = document.getElementById("budgetTableBody");
+    tbody.innerHTML = "";
+
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="11" class="center">Составляющие не добавлены</td></tr>`;
+      return;
+    }
+
+    rows.forEach((r, index) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="center">${index + 1}</td>
+        <td>${escapeHtml(r.title)}</td>
+        <td>${escapeHtml(r.source)}</td>
+        <td class="center">${escapeHtml(r.type)}</td>
+        <td class="center">${distributionHuman(r.distribution)}</td>
+        <td class="num">${fmt(r.standardU)} ${escapeHtml(unit)}</td>
+        <td class="num">${fmt(r.sensitivity)}</td>
+        <td class="num">${fmt(r.contribution)} ${escapeHtml(unit)}</td>
+        <td class="num">${fmt(r.variance)}</td>
+        <td class="num">${fmt(r.percent)} %</td>
+        <td>${r.significance}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderKpi(uc, U, relU, dominant, unit) {
+    document.getElementById("kpiUc").textContent = `${fmt(uc)} ${unit}`;
+    document.getElementById("kpiU").textContent = `${fmt(U)} ${unit}`;
+    document.getElementById("kpiRelU").textContent = `${fmt(relU)} %`;
+    document.getElementById("kpiDominant").textContent = dominant ? `${dominant.title} (${fmt(dominant.percent)} %)` : "—";
+  }
+
+  function renderValidation(messages, rows) {
+    const box = document.getElementById("validationMessages");
+    const warnings = [...messages];
+
+    rows.forEach(r => {
+      if (!r.title || r.title.trim().length < 3) warnings.push("Есть составляющая без понятного названия.");
+      if (!r.source || r.source.trim().length < 3) warnings.push(`Для составляющей «${r.title}» не указан источник данных.`);
+      if (!Number.isFinite(r.standardU) || r.standardU < 0) warnings.push(`Для составляющей «${r.title}» некорректно рассчитана u(x).`);
+      if (r.standardU === 0) warnings.push(`Для составляющей «${r.title}» u(x) равна 0. Проверьте, это осознанное решение или не заполнено значение.`);
+    });
+
+    if (warnings.length === 0) {
+      box.innerHTML = `<div class="success-box">Ошибок заполнения не выявлено. Проверьте экспертно полноту перечня составляющих и обоснованность выбранных распределений.</div>`;
+    } else {
+      box.innerHTML = `<div class="error-box"><b>Проверьте расчет:</b><br>${warnings.map(w => "— " + escapeHtml(w)).join("<br>")}</div>`;
+    }
+  }
+
+  function renderStatement(resultValue, U, relU, k, unit) {
+    const rounded = getRoundedResult(resultValue, U);
+    document.getElementById("resultStatement").innerHTML = `
+      <b>Представление результата:</b><br>
+      ${rounded.y} ± ${rounded.U} ${escapeHtml(unit)}, k = ${fmt(k)}.<br>
+      Относительная расширенная неопределенность: ${fmt(relU)} %.
+    `;
+  }
+
+  function renderProtocol() {
+    const unit = document.getElementById("unit").value || "ед.";
+    const resultValue = Number(document.getElementById("resultValue").value);
+    const k = Number(document.getElementById("coverageFactor").value);
+    const r = state.lastResult || { rows: [], uc: 0, U: 0, relU: 0, dominant: null };
+    const rounded = getRoundedResult(resultValue, r.U);
+
+    const rowsHtml = r.rows.map((row, index) => `
+      <tr>
+        <td class="center">${index + 1}</td>
+        <td>${escapeHtml(row.title)}</td>
+        <td>${escapeHtml(row.source)}</td>
+        <td class="center">${escapeHtml(row.type)}</td>
+        <td>${distributionHuman(row.distribution)}</td>
+        <td class="num">${fmt(row.standardU)}</td>
+        <td class="num">${fmt(row.sensitivity)}</td>
+        <td class="num">${fmt(row.contribution)}</td>
+        <td class="num">${fmt(row.percent)} %</td>
+      </tr>
+    `).join("");
+
+    const protocol = `
+      <h2>Протокол расчета неопределенности измерений</h2>
+
+      <table>
+        <tr><th>Лаборатория</th><td>${escapeHtml(document.getElementById("labName").value)}</td></tr>
+        <tr><th>Номер расчета</th><td>${escapeHtml(document.getElementById("reportNumber").value)}</td></tr>
+        <tr><th>Дата расчета</th><td>${escapeHtml(document.getElementById("calcDate").value)}</td></tr>
+        <tr><th>Методика</th><td>${escapeHtml(document.getElementById("methodName").value)}</td></tr>
+        <tr><th>Объект испытаний</th><td>${escapeHtml(document.getElementById("objectName").value)}</td></tr>
+        <tr><th>Измеряемая величина</th><td>${escapeHtml(document.getElementById("measurand").value)}</td></tr>
+        <tr><th>Единица измерения</th><td>${escapeHtml(unit)}</td></tr>
+        <tr><th>Назначение расчета</th><td>${escapeHtml(document.getElementById("purpose").value)}</td></tr>
+      </table>
+
+      <h3>Модель измерения и подход</h3>
+      <p>${escapeHtml(document.getElementById("modelFormula").value)}</p>
+      <p><b>Принятый подход:</b> ${escapeHtml(approachHuman(document.getElementById("approach").value))}</p>
+
+      <h3>Расчетные формулы</h3>
+      <div class="formula">uс(y) = √Σ(cᵢ · u(xᵢ))²</div>
+      <div class="formula">U = k · uс(y)</div>
+
+      <h3>Бюджет неопределенности</h3>
+      <table>
+        <thead>
+          <tr>
+            <th class="center">№</th>
+            <th>Составляющая</th>
+            <th>Источник данных</th>
+            <th class="center">Тип</th>
+            <th>Способ расчета</th>
+            <th class="num">u(x), ${escapeHtml(unit)}</th>
+            <th class="num">c</th>
+            <th class="num">c·u(x)</th>
+            <th class="num">Вклад</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml || `<tr><td colspan="9" class="center">Составляющие не добавлены</td></tr>`}</tbody>
+      </table>
+
+      <h3>Итоговые значения</h3>
+      <table>
+        <tr><th>Результат измерения y</th><td>${fmt(resultValue)} ${escapeHtml(unit)}</td></tr>
+        <tr><th>Суммарная стандартная неопределенность uс(y)</th><td>${fmt(r.uc)} ${escapeHtml(unit)}</td></tr>
+        <tr><th>Коэффициент охвата k</th><td>${fmt(k)}</td></tr>
+        <tr><th>Расширенная неопределенность U</th><td>${fmt(r.U)} ${escapeHtml(unit)}</td></tr>
+        <tr><th>Относительная расширенная неопределенность</th><td>${fmt(r.relU)} %</td></tr>
+        <tr><th>Наиболее значимая составляющая</th><td>${r.dominant ? escapeHtml(r.dominant.title) + " — " + fmt(r.dominant.percent) + " %" : "—"}</td></tr>
+      </table>
+
+      <h3>Форма представления результата</h3>
+      <div class="formula">${rounded.y} ± ${rounded.U} ${escapeHtml(unit)}, k = ${fmt(k)}</div>
+
+      <h3>Вывод</h3>
+      <p>Оценивание неопределенности выполнено на основании заявленной модели измерения и бюджета составляющих. Суммарная стандартная неопределенность рассчитана как корень из суммы квадратов вкладов стандартных неопределенностей с учетом коэффициентов чувствительности. Расширенная неопределенность рассчитана умножением суммарной стандартной неопределенности на коэффициент охвата.</p>
+      <p>Расчет может быть использован лабораторией при подтверждении пригодности методики, анализе достоверности результатов, оформлении результатов испытаний и принятии решений о соответствии при условии документального подтверждения исходных данных и правил расчета в системе менеджмента лаборатории.</p>
+    `;
+
+    document.getElementById("protocol").innerHTML = protocol;
+  }
+
+  function getRoundedResult(y, U) {
+    const mode = document.getElementById("roundMode").value;
+    if (!Number.isFinite(y) || !Number.isFinite(U)) return { y: "0", U: "0" };
+
+    if (mode === "fixed2") return { y: y.toFixed(2), U: U.toFixed(2) };
+    if (mode === "fixed3") return { y: y.toFixed(3), U: U.toFixed(3) };
+    if (mode === "3sig") return { y: toSig(y, 3), U: toSig(U, 3) };
+    return { y: toSig(y, 4), U: toSig(U, 2) };
+  }
+
+  function toSig(num, sig) {
+    if (!Number.isFinite(num)) return "0";
+    if (num === 0) return "0";
+    return Number(num).toPrecision(sig).replace(/\.?0+($|e)/, "$1");
+  }
+
+  function fmt(num) {
+    if (!Number.isFinite(num)) return "0";
+    if (Math.abs(num) >= 100000 || (Math.abs(num) > 0 && Math.abs(num) < 0.0001)) {
+      return num.toExponential(4);
+    }
+    return Number(num.toPrecision(6)).toString();
+  }
+
+  function distributionHuman(value) {
+    const map = {
+      normal_s_n: "s / √n",
+      rectangular_halfwidth: "a / √3",
+      triangular_halfwidth: "a / √6",
+      expanded_U_k: "U / k",
+      resolution: "d / √12",
+      standard_u: "u задана"
+    };
+    return map[value] || value;
+  }
+
+  function approachHuman(value) {
+    const map = {
+      budget: "Бюджет неопределенности по входным величинам",
+      validation: "По данным верификации / внутрилабораторной прецизионности",
+      combined: "Комбинированный подход: бюджет + данные верификации"
+    };
+    return map[value] || value;
+  }
+
+  function loadTypicalChemicalExample() {
+    state.components = [];
+    ["repeatability", "instrumentError", "crm", "calibrationCurve", "samplePrep"].forEach(name => {
+      const c = structuredClone(templates[name]);
+      c.id = uid();
+      state.components.push(c);
+    });
+    renderComponents();
+    calculateAll(false);
+  }
+
+  function resetApp() {
+    const ok = confirm("Очистить все введенные данные и составляющие?");
+    if (!ok) return;
+    state.components = [];
+    document.getElementById("labName").value = "Испытательная лаборатория";
+    document.getElementById("reportNumber").value = "ОН-001-2026";
+    document.getElementById("methodName").value = "Методика выполнения измерений";
+    document.getElementById("objectName").value = "Объект испытаний";
+    document.getElementById("measurand").value = "Массовая концентрация определяемого компонента";
+    document.getElementById("unit").value = "мг/дм³";
+    document.getElementById("resultValue").value = "10";
+    document.getElementById("coverageFactor").value = "2";
+    document.getElementById("purpose").value = "Оценивание неопределенности измерений для подтверждения пригодности методики и представления результата измерения.";
+    renderComponents();
+    calculateAll(false);
+  }
+
+  function printProtocol() {
+    calculateAll(true);
+    window.print();
+  }
+
+  function copyProtocolText() {
+    calculateAll(true);
+    const text = document.getElementById("protocol").innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Текст протокола скопирован.");
+    }).catch(() => {
+      alert("Не удалось скопировать автоматически. Выделите текст протокола вручную.");
+    });
+  }
+
+  function escapeHtml(text) {
+    return String(text ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function escapeAttr(text) {
+    return escapeHtml(text).replaceAll("\n", " ");
+  }
+
+  /**
+   * Переключение светлой / тёмной темы: атрибут data-theme на <html>, сохранение в localStorage.
+   * Иконка: луна — сейчас светлая тема (клик включит тёмную); солнце — наоборот.
+   */
+  (function setupThemeToggle() {
+    var root = document.documentElement;
+    var storageKey = "uncertainty-theme";
+    var btn = document.getElementById("themeToggle");
+    var icon = btn && btn.querySelector(".theme-toggle-icon");
+
+    function syncIcon() {
+      if (!icon) return;
+      icon.textContent = root.getAttribute("data-theme") === "dark" ? "\u2600" : "\u263D";
+    }
+
+    function setDark(on) {
+      if (on) root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      try {
+        localStorage.setItem(storageKey, on ? "dark" : "light");
+      } catch (e) { /* нет доступа к хранилищу */ }
+      syncIcon();
+      if (btn) btn.setAttribute("aria-pressed", on ? "true" : "false");
+    }
+
+    if (btn) {
+      syncIcon();
+      btn.setAttribute(
+        "aria-pressed",
+        root.getAttribute("data-theme") === "dark" ? "true" : "false"
+      );
+      btn.addEventListener("click", function () {
+        setDark(root.getAttribute("data-theme") !== "dark");
+      });
+    }
+  })();
+
+  init();
+</script>
+</body>
+</html>
