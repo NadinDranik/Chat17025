@@ -12,6 +12,9 @@ Desktop.ini
 *.swo
 *~
 
+# Node.js (локальный preview-сервер)
+node_modules/
+
 # Временные и резервные копии
 *.log
 *.tmp

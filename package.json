@@ -1,0 +1,14 @@
+{
+  "name": "uncertainty-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Веб-приложение для расчёта неопределённости методики (ГОСТ 34100.3-2017)",
+  "scripts": {
+    "start": "serve -l 3000 .",
+    "preview": "npm run start",
+    "serve": "npm run start"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
